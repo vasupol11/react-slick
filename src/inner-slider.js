@@ -102,6 +102,7 @@ export class InnerSlider extends React.Component {
       return;
     }
     if (window.addEventListener) {
+      window.addEventListener('touchmove', this.preventDefault, {passive: false});
       window.addEventListener("resize", this.onWindowResized);
     } else {
       window.attachEvent("onresize", this.onWindowResized);
@@ -119,6 +120,7 @@ export class InnerSlider extends React.Component {
       this.callbackTimers = [];
     }
     if (window.addEventListener) {
+      window.removeEventListener('touchmove', this.preventDefault, {passive: false});
       window.removeEventListener("resize", this.onWindowResized);
     } else {
       window.detachEvent("onresize", this.onWindowResized);
@@ -189,6 +191,7 @@ export class InnerSlider extends React.Component {
     // }
     this.adaptHeight();
   };
+  preventDefault = (e) => { if(this.state.swiping) { e.preventDefault(); e.returnValue = false; return false; } };
   onWindowResized = setTrackStyle => {
     if (this.debouncedResize) this.debouncedResize.cancel();
     this.debouncedResize = debounce(() => this.resizeWindow(setTrackStyle), 50);
