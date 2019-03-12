@@ -201,7 +201,7 @@ export class InnerSlider extends React.Component {
     this.firstClientX = e.touches[0].clientX;
     this.firstClientY = e.touches[0].clientY;
   };
-  preventDefault = e => {
+  preventTouch = e => {
     const minValue = 5; // threshold
 
     this.clientX = e.touches[0].clientX - this.firstClientX;
