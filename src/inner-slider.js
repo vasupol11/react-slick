@@ -102,7 +102,10 @@ export class InnerSlider extends React.Component {
       return;
     }
     if (window.addEventListener) {
-      window.addEventListener('touchmove', this.preventDefault, {passive: false});
+      window.addEventListener("touchstart", this.touchStart);
+      window.addEventListener("touchmove", this.preventTouch, {
+        passive: false
+      });
       window.addEventListener("resize", this.onWindowResized);
     } else {
       window.attachEvent("onresize", this.onWindowResized);
@@ -120,7 +123,10 @@ export class InnerSlider extends React.Component {
       this.callbackTimers = [];
     }
     if (window.addEventListener) {
-      window.removeEventListener('touchmove', this.preventDefault, {passive: false});
+      window.removeEventListener("touchstart", this.touchStart);
+      window.removeEventListener("touchmove", this.preventTouch, {
+        passive: false
+      });
       window.removeEventListener("resize", this.onWindowResized);
     } else {
       window.detachEvent("onresize", this.onWindowResized);
@@ -191,7 +197,23 @@ export class InnerSlider extends React.Component {
     // }
     this.adaptHeight();
   };
-  preventDefault = (e) => { if(this.state.swiping) { e.preventDefault(); e.returnValue = false; return false; } };
+  touchStart = e => {
+    this.firstClientX = e.touches[0].clientX;
+    this.firstClientY = e.touches[0].clientY;
+  };
+  preventDefault = e => {
+    const minValue = 5; // threshold
+
+    this.clientX = e.touches[0].clientX - this.firstClientX;
+    this.clientY = e.touches[0].clientY - this.firstClientY;
+
+    // Vertical scrolling does not work when you start swiping horizontally.
+    if (Math.abs(this.clientX) > minValue) {
+      e.preventDefault();
+      e.returnValue = false;
+      return false;
+    }
+  };
   onWindowResized = setTrackStyle => {
     if (this.debouncedResize) this.debouncedResize.cancel();
     this.debouncedResize = debounce(() => this.resizeWindow(setTrackStyle), 50);
@@ -279,15 +301,15 @@ export class InnerSlider extends React.Component {
     let childrenCount = React.Children.count(this.props.children);
     const spec = { ...this.props, ...this.state, slideCount: childrenCount };
     let slideCount = getPreClones(spec) + getPostClones(spec) + childrenCount;
-    let trackWidth = 100 / this.props.slidesToShow * slideCount;
+    let trackWidth = (100 / this.props.slidesToShow) * slideCount;
     let slideWidth = 100 / slideCount;
     let trackLeft =
-      -slideWidth *
-      (getPreClones(spec) + this.state.currentSlide) *
-      trackWidth /
+      (-slideWidth *
+        (getPreClones(spec) + this.state.currentSlide) *
+        trackWidth) /
       100;
     if (this.props.centerMode) {
-      trackLeft += (100 - slideWidth * trackWidth / 100) / 2;
+      trackLeft += (100 - (slideWidth * trackWidth) / 100) / 2;
     }
     let trackStyle = {
       width: trackWidth + "%",
